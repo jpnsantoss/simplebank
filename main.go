@@ -7,22 +7,23 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jpnsantoss/simplebank/api"
 	db "github.com/jpnsantoss/simplebank/db/sqlc"
-)
-
-const (
-	dbSource     = "postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable"
-	serverAdress = "0.0.0.0:8080"
+	"github.com/jpnsantoss/simplebank/util"
 )
 
 func main() {
-	conn, err := pgxpool.New(context.Background(), dbSource)
+	config, err := util.LoadConfig(".")
+
+	if err != nil {
+		log.Fatal("cannot load config:", err)
+	}
+	conn, err := pgxpool.New(context.Background(), config.DBSource)
 	if err != nil {
 		log.Fatal("cannot connect to db:", err)
 	}
 	store := db.NewStore(conn)
 	server := api.NewServer(store)
 
-	err = server.Start(serverAdress)
+	err = server.Start(config.ServerAddress)
 	if err != nil {
 		log.Fatal("cannot start server:", err)
 	}
